@@ -1,0 +1,64 @@
+name: Build & Release BOFs
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install MinGW-w64
+        run: sudo apt-get update && sudo apt-get install -y gcc-mingw-w64-x86-64
+
+      - name: Build all BOFs
+        run: make clean && make all
+
+      - name: Verify sizes
+        run: |
+          echo "=== Size Verification ==="
+          FAIL=0
+          for f in dist/*.o; do
+            size=$(stat -c%s "$f")
+            name=$(basename "$f")
+            if [ $size -gt 307200 ]; then
+              echo "FAIL: $name is $size bytes (>300KB)"
+              FAIL=1
+            else
+              echo "OK: $name — $size bytes"
+            fi
+          done
+          if [ $FAIL -eq 1 ]; then
+            echo "::error::One or more BOFs exceed 300KB size limit"
+            exit 1
+          fi
+
+      - name: Package release
+        run: |
+          mkdir -p release
+          cp dist/*.o release/
+          cp dpapi.cna release/
+          cp README.md release/
+          cd release && zip -r ../SharpDPAPI-BOF.zip .
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: SharpDPAPI-BOF
+          path: release/
+
+      - name: Create GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: SharpDPAPI-BOF.zip
+          generate_release_notes: true
