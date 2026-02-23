@@ -2,6 +2,7 @@ name: Build & Release BOFs
 
 on:
   push:
+    branches: [master]
     tags:
       - 'v*'
   workflow_dispatch:
