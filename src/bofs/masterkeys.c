@@ -4,7 +4,7 @@
  * Usage:
  *   masterkeys [/pvk:BASE64] [/password:PASSWORD] [/ntlm:HASH]
  *              [/credkey:KEY] [/rpc] [/server:SERVER] [/target:PATH]
- *              [/hashes]
+ *              [/sid:SID] [/hashes]
  *
  * Enumerates and decrypts user DPAPI masterkeys.
  */
@@ -25,6 +25,7 @@ void go(char* args, int args_len) {
     char* credkey    = BeaconDataExtract(&parser, NULL);
     char* target_str = BeaconDataExtract(&parser, NULL);
     char* server_str = BeaconDataExtract(&parser, NULL);
+    char* sid_str    = BeaconDataExtract(&parser, NULL);
     int   use_rpc    = BeaconDataInt(&parser);
     int   hashes     = BeaconDataInt(&parser);
 
@@ -90,7 +91,7 @@ void go(char* args, int args_len) {
         (BOOL)use_rpc,
         target, server,
         (BOOL)hashes,
-        NULL
+        (sid_str && strlen(sid_str) > 0) ? sid_str : NULL
     );
 
     if (result) {

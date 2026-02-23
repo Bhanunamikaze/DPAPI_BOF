@@ -3,9 +3,11 @@
  *
  * Usage:
  *   search [/target:PATH] [/server:SERVER] [/pattern:REGEX]
- *          [/pvk:BASE64] [/credkey:KEY]
+ *          [/pvk:BASE64] [/credkey:KEY] [/type:TYPE]
+ *          [/maxBytes:N] [/showErrors]
  *
  * Searches for files containing DPAPI blobs and attempts decryption.
+ * /type supports: file, folder, registry, base64
  */
 #include "beacon.h"
 #include "bofdefs.h"
@@ -22,6 +24,9 @@ void go(char* args, int args_len) {
     char* pattern     = BeaconDataExtract(&parser, NULL);
     char* pvk_b64     = BeaconDataExtract(&parser, NULL);
     char* credkey     = BeaconDataExtract(&parser, NULL);
+    char* type_str    = BeaconDataExtract(&parser, NULL);
+    int   maxbytes    = BeaconDataInt(&parser);
+    int   showerrors  = BeaconDataInt(&parser);
 
     BYTE* pvk = NULL;
     int pvk_len = 0;
@@ -32,6 +37,11 @@ void go(char* args, int args_len) {
     wchar_t* server = NULL;
     if (target_str && strlen(target_str) > 0) target = utf8_to_wide(target_str);
     if (server_str && strlen(server_str) > 0) server = utf8_to_wide(server_str);
+
+    /* Note: type, maxbytes, showerrors reserved for future triage_search enhancement */
+    (void)type_str;
+    (void)maxbytes;
+    (void)showerrors;
 
     MASTERKEY_CACHE cache;
     mk_cache_init(&cache);

