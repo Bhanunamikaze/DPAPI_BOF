@@ -1,0 +1,16 @@
+# Build artifacts
+obj/
+dist/
+
+# Reference repos
+Repos/
+
+# GSD framework
+.gsd/
+.agent/
+.gemini/
+PROJECT_RULES.md
+GSD-STYLE.md
+model_capabilities.yaml
+scripts/
+docs/

