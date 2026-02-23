@@ -3,7 +3,7 @@
  *
  * Usage:
  *   triage [/pvk:BASE64] [/password:PASSWORD] [/ntlm:HASH]
- *          [/credkey:KEY] [/server:SERVER] [/showall]
+ *          [/credkey:KEY] [/server:SERVER] [/showall] [/rpc]
  *
  * All-in-one: masterkeys + credentials + vaults + certificates.
  */
@@ -23,6 +23,7 @@ void go(char* args, int args_len) {
     char* credkey    = BeaconDataExtract(&parser, NULL);
     char* server_str = BeaconDataExtract(&parser, NULL);
     int   show_all   = BeaconDataInt(&parser);
+    int   use_rpc    = BeaconDataInt(&parser);
 
     BYTE* pvk = NULL;
     int pvk_len = 0;
@@ -64,7 +65,7 @@ void go(char* args, int args_len) {
     triage_user_full(&cache, pvk, pvk_len,
         (password && strlen(password) > 0) ? password : NULL,
         (ntlm && strlen(ntlm) > 0) ? ntlm : NULL,
-        NULL, FALSE, NULL, server, (BOOL)show_all);
+        NULL, (BOOL)use_rpc, NULL, server, (BOOL)show_all);
 
     if (cache.count > 0) mk_cache_print(&cache);
 

