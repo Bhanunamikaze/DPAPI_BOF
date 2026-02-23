@@ -1,8 +1,8 @@
 # DPAPI_BOF
 
-**SharpDPAPI** ported to **Cobalt Strike Beacon Object Files (BOFs)** — 19 self-contained BOFs for DPAPI credential triage, all under 52KB each.
+**SharpDPAPI** ported to **Cobalt Strike Beacon Object Files (BOFs)** - 19 self-contained BOFs for DPAPI credential triage, all under 52KB each.
 
-> Full port of [GhostPack/SharpDPAPI](https://github.com/GhostPack/SharpDPAPI) by @harmj0y — including MS-BKRP RPC masterkey decryption, Chrome/Edge/Brave credential extraction, and machine-level DPAPI triage.
+> Full port of [GhostPack/SharpDPAPI](https://github.com/GhostPack/SharpDPAPI) by @harmj0y - including MS-BKRP RPC masterkey decryption, Chrome/Edge/Brave credential extraction, and machine-level DPAPI triage.
 
 ---
 
@@ -31,11 +31,11 @@
 
 | | SharpDPAPI (.NET) | DPAPI_BOF |
 |---|---|---|
-| **Execution** | Fork & run — spawns a sacrificial process | Inline execution — runs in beacon's own thread |
+| **Execution** | Fork & run - spawns a sacrificial process | Inline execution - runs in beacon's own thread |
 | **Size** | ~600KB managed assembly | ~50KB per BOF |
 | **Detection** | .NET CLR load + Assembly.Load detections | No CLR, no managed code, no child process |
-| **Dependencies** | Requires .NET on target | Zero dependencies — DFR resolves APIs at runtime |
-| **OPSEC** | Moderate — triggers ETW/.NET logs | High — no fork, no injection, minimal footprint |
+| **Dependencies** | Requires .NET on target | Zero dependencies - DFR resolves APIs at runtime |
+| **OPSEC** | Moderate - triggers ETW/.NET logs | High - no fork, no injection, minimal footprint |
 
 ---
 
@@ -101,7 +101,7 @@ backupkey /server:dc01.corp.local
 # 2. Use it to decrypt everything
 triage /pvk:<BASE64_PVK>
 
-# 3. Or just use RPC (no PVK needed — asks DC to decrypt for you)
+# 3. Or just use RPC (no PVK needed - asks DC to decrypt for you)
 triage /rpc
 ```
 
@@ -111,16 +111,16 @@ triage /rpc
 
 ### Execution Model
 
-All BOFs run via Cobalt Strike's `beacon_inline_execute()` — this means:
+All BOFs run via Cobalt Strike's `beacon_inline_execute()` - this means:
 
-- ✅ **No child process** — code runs in the beacon's own thread
-- ✅ **No .NET CLR** — pure C, no managed code loaded
-- ✅ **No `CreateRemoteThread`** — no injection into other processes
-- ✅ **No temporary DLLs** — everything is position-independent code
+- ✅ **No child process** - code runs in the beacon's own thread
+- ✅ **No .NET CLR** - pure C, no managed code loaded
+- ✅ **No `CreateRemoteThread`** - no injection into other processes
+- ✅ **No temporary DLLs** - everything is position-independent code
 
 ### API Call Visibility
 
-These BOFs use **Dynamic Function Resolution (DFR)** — APIs are resolved at runtime via `GetProcAddress`. This avoids static IAT entries but the actual API calls are still visible to:
+These BOFs use **Dynamic Function Resolution (DFR)** - APIs are resolved at runtime via `GetProcAddress`. This avoids static IAT entries but the actual API calls are still visible to:
 
 - **Usermode hooks** (EDR inline hooks on `CryptUnprotectData`, `BCryptDecrypt`, etc.)
 - **Kernel callbacks** (ETW, syscall telemetry)
@@ -130,15 +130,15 @@ These BOFs use **Dynamic Function Resolution (DFR)** — APIs are resolved at ru
 
 | Scenario | Recommendation |
 |----------|---------------|
-| **Default triage** | Use `/pvk` or `/credkey` rather than `/unprotect` — avoids calling `CryptUnprotectData` which is hooked by most EDRs |
+| **Default triage** | Use `/pvk` or `/credkey` rather than `/unprotect` - avoids calling `CryptUnprotectData` which is hooked by most EDRs |
 | **RPC decryption** | `/rpc` is lower-risk than `/unprotect` but creates an RPC connection to the DC. Best used during normal auth traffic windows |
-| **Machine triage** | Requires `SYSTEM` access — ensure you have a high-integrity beacon. These BOFs read LSA secrets via registry |
+| **Machine triage** | Requires `SYSTEM` access - ensure you have a high-integrity beacon. These BOFs read LSA secrets via registry |
 | **Chrome extraction** | Reading Chrome SQLite databases may trigger filesystem telemetry. Use `/target:` to point at staged copies when possible |
-| **Mass triage** | Run `masterkeys` first to build your key cache, then use `/credkey:` with specific commands — avoids redundant file access |
+| **Mass triage** | Run `masterkeys` first to build your key cache, then use `/credkey:` with specific commands - avoids redundant file access |
 
 ### Fork & Run Alternative
 
-If you prefer process isolation (at the cost of OPSEC), you can modify the CNA to use `beacon_execute_assembly` with a .NET build instead. However, the whole point of BOFs is inline execution — **use it**.
+If you prefer process isolation (at the cost of OPSEC), you can modify the CNA to use `beacon_execute_assembly` with a .NET build instead. However, the whole point of BOFs is inline execution - **use it**.
 
 ---
 
@@ -174,7 +174,7 @@ masterkeys /pvk:AQAAAA...
 # Decrypt with user's password
 masterkeys /password:Summer2025!
 
-# RPC — ask DC to decrypt (best for current user context)
+# RPC - ask DC to decrypt (best for current user context)
 masterkeys /rpc
 
 # Remote user's masterkeys with their password
@@ -218,7 +218,7 @@ certificates [/pvk:BASE64] [/password:PASS] [/ntlm:HASH] [/credkey:KEY]
 | `/machine` | Triage machine certificate store instead of user |
 
 #### `triage`
-Full user DPAPI triage — runs masterkeys + credentials + vaults + certificates in one shot.
+Full user DPAPI triage - runs masterkeys + credentials + vaults + certificates in one shot.
 
 ```
 triage [/pvk:BASE64] [/password:PASS] [/ntlm:HASH] [/credkey:KEY]
@@ -315,7 +315,7 @@ machinevaults
 ```
 
 #### `machinetriage`
-Full SYSTEM triage — masterkeys + credentials + vaults + certificates.
+Full SYSTEM triage - masterkeys + credentials + vaults + certificates.
 
 ```
 machinetriage
@@ -375,13 +375,13 @@ chrome_cookies [/pvk:BASE64] [/password:PASS] [/ntlm:HASH] [/credkey:KEY]
 # Step 1: Extract the AES state key
 chrome_statekeys /rpc
 
-# Step 2: Use it to decrypt logins (fast — no masterkey triage needed)
+# Step 2: Use it to decrypt logins (fast - no masterkey triage needed)
 chrome_logins /statekey:AABBCCDD...
 
 # Step 3: Grab specific cookies
 chrome_cookies /statekey:AABBCCDD... /cookie:session /url:github.com
 
-# Or do it all at once (slower — triages masterkeys each time)
+# Or do it all at once (slower - triages masterkeys each time)
 chrome_logins /rpc
 chrome_cookies /rpc /cookie:SSID /url:google.com
 ```
@@ -451,12 +451,12 @@ search [/target:PATH] [/server:DC] [/pattern:REGEX] [/pvk:BASE64]
 
 ## Usage Playbooks
 
-### Playbook 1: Current User — Zero Knowledge
+### Playbook 1: Current User - Zero Knowledge
 
 You have a beacon as a domain user. No passwords, no keys, nothing.
 
 ```bash
-# RPC is your friend — ask the DC to decrypt your masterkeys
+# RPC is your friend - ask the DC to decrypt your masterkeys
 masterkeys /rpc
 # Copy the {GUID}:SHA1 pairs from output
 
@@ -471,7 +471,7 @@ Or just:
 triage /rpc
 ```
 
-### Playbook 2: Domain Admin — Mass Triage
+### Playbook 2: Domain Admin - Mass Triage
 
 You have DA and want to triage multiple machines.
 
@@ -568,7 +568,7 @@ make clean && make all
 
 ```
 DPAPI_BOF/
-├── dpapi.cna                  # Aggressor script — LOAD THIS
+├── dpapi.cna                  # Aggressor script - LOAD THIS
 ├── Makefile                   # Cross-compilation build system
 ├── README.md
 │
@@ -616,8 +616,8 @@ Each BOF is compiled as a **relocatable object file** (`.o`) with all shared lib
 
 | Property | Detail |
 |----------|--------|
-| **Self-contained** | Each `.o` has all code it needs — no external DLLs |
-| **No CRT** | Zero C runtime dependency — all Win32 calls via DFR |
+| **Self-contained** | Each `.o` has all code it needs - no external DLLs |
+| **No CRT** | Zero C runtime dependency - all Win32 calls via DFR |
 | **Inline execution** | Runs in beacon's thread via `beacon_inline_execute()` |
 | **Cross-compiled** | Built on Linux/macOS with MinGW-w64 |
 | **Small** | All BOFs ~50KB (limit: 300KB) |
