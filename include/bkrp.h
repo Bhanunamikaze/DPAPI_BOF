@@ -13,14 +13,8 @@
 
 #include "bofdefs.h"
 
-/* ---- DFR for NdrClientCall2 (only declared here, not in bofdefs.h) ---- */
-#ifndef BKRP_NDRCLIENTCALL2_DECLARED
-#define BKRP_NDRCLIENTCALL2_DECLARED
-DECLSPEC_IMPORT void* CDECL RPCRT4$NdrClientCall2(
-    void* pStubDescriptor, void* pFormat, ...);
-#endif
-
 /* ---- Public API ---- */
+/* NdrClientCall2 DFR is declared in bofdefs.h */
 
 /*
  * bkrp_decrypt_masterkey — Decrypt a masterkey's domain key via MS-BKRP RPC

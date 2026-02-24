@@ -197,6 +197,8 @@ DECLSPEC_IMPORT LONG    WINAPI ADVAPI32$RegCloseKey(HKEY);
 DECLSPEC_IMPORT BOOL    WINAPI ADVAPI32$IsTextUnicode(const VOID*, int, LPINT);
 DECLSPEC_IMPORT BOOL    WINAPI ADVAPI32$GetTokenInformation(HANDLE, TOKEN_INFORMATION_CLASS, LPVOID, DWORD, PDWORD);
 DECLSPEC_IMPORT BOOL    WINAPI ADVAPI32$ConvertSidToStringSidW(PSID, LPWSTR*);
+DECLSPEC_IMPORT PDWORD  WINAPI ADVAPI32$GetSidSubAuthority(PSID, DWORD);
+DECLSPEC_IMPORT PUCHAR  WINAPI ADVAPI32$GetSidSubAuthorityCount(PSID);
 
 /* --- ncrypt.dll --- */
 DECLSPEC_IMPORT SECURITY_STATUS WINAPI NCRYPT$NCryptOpenStorageProvider(NCRYPT_PROV_HANDLE*, LPCWSTR, DWORD);
@@ -245,6 +247,7 @@ DECLSPEC_IMPORT long    WINAPI RPCRT4$RpcBindingFromStringBindingW(wchar_t*, voi
 DECLSPEC_IMPORT long    WINAPI RPCRT4$RpcStringFreeW(wchar_t**);
 DECLSPEC_IMPORT long    WINAPI RPCRT4$RpcBindingFree(void**);
 DECLSPEC_IMPORT long    WINAPI RPCRT4$RpcBindingSetAuthInfoExW(void*, wchar_t*, unsigned long, unsigned long, void*, unsigned long, RPC_SECURITY_QOS*);
+DECLSPEC_IMPORT void*   __cdecl RPCRT4$NdrClientCall2(void*, void*, ...);
 
 /* --- msvcrt.dll (CRT-like functions available in Windows) --- */
 DECLSPEC_IMPORT int     __cdecl MSVCRT$sprintf(char*, const char*, ...);

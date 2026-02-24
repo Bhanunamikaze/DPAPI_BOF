@@ -126,8 +126,8 @@ BOOL is_high_integrity(void) {
     if (!tml) { KERNEL32$CloseHandle(hToken); return FALSE; }
 
     if (ADVAPI32$GetTokenInformation(hToken, TokenIntegrityLevel, tml, dwSize, &dwSize)) {
-        DWORD* pCount = GetSidSubAuthorityCount(tml->Label.Sid);
-        DWORD integrity = *GetSidSubAuthority(tml->Label.Sid, *pCount - 1);
+        DWORD* pCount = (DWORD*)ADVAPI32$GetSidSubAuthorityCount(tml->Label.Sid);
+        DWORD integrity = *ADVAPI32$GetSidSubAuthority(tml->Label.Sid, *pCount - 1);
         result = (integrity >= SECURITY_MANDATORY_HIGH_RID);
     }
 

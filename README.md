@@ -2,7 +2,7 @@
 
 **SharpDPAPI** ported to **Cobalt Strike Beacon Object Files (BOFs)** - 19 self-contained BOFs for DPAPI credential triage, all under 52KB each.
 
-> Full port of [GhostPack/SharpDPAPI](https://github.com/GhostPack/SharpDPAPI) by @harmj0y - including MS-BKRP RPC masterkey decryption, Chrome/Edge/Brave credential extraction, and machine-level DPAPI triage.
+> Full port of [GhostPack/SharpDPAPI](https://github.com/GhostPack/SharpDPAPI) - including MS-BKRP RPC masterkey decryption, Chrome/Edge/Brave credential extraction, and machine-level DPAPI triage.
 
 ---
 
