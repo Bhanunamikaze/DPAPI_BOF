@@ -17,7 +17,7 @@ void go(char* args, int args_len) {
     (void)args; (void)args_len;
 
     BeaconPrintf(CALLBACK_OUTPUT,
-        "\n=== SharpDPAPI Machine Masterkeys (BOF) ===\n");
+        "\n=== DPAPI Machine Masterkeys (BOF) ===\n");
 
     if (!is_high_integrity()) {
         BeaconPrintf(CALLBACK_ERROR,

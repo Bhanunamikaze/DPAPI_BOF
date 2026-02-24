@@ -83,7 +83,7 @@ void go(char* args, int args_len) {
             NULL, (BOOL)use_rpc, NULL, NULL, FALSE, NULL);
     }
 
-    BeaconPrintf(CALLBACK_OUTPUT, "\n=== SharpDPAPI Blob Describe (BOF) ===\n");
+    BeaconPrintf(CALLBACK_OUTPUT, "\n=== DPAPI Blob Describe (BOF) ===\n");
 
     describe_dpapi_blob(blob_data, blob_len,
                         cache.count > 0 ? &cache : NULL,

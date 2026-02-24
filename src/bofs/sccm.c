@@ -35,7 +35,7 @@ void go(char* args, int args_len) {
     /* Decrypt machine masterkeys first */
     triage_system_masterkeys(&cache);
 
-    BeaconPrintf(CALLBACK_OUTPUT, "\n=== SharpDPAPI SCCM (BOF) ===\n");
+    BeaconPrintf(CALLBACK_OUTPUT, "\n=== DPAPI SCCM (BOF) ===\n");
 
     triage_sccm(&cache, target);
 

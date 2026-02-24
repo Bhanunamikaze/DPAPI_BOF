@@ -80,7 +80,7 @@ void go(char* args, int args_len) {
     }
 
     BeaconPrintf(CALLBACK_OUTPUT,
-        "\n=== SharpDPAPI Masterkeys (BOF) ===\n");
+        "\n=== DPAPI Masterkeys (BOF) ===\n");
 
     /* Triage masterkeys */
     BOOL result = triage_user_masterkeys(

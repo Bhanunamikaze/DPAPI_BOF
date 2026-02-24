@@ -86,7 +86,7 @@ void go(char* args, int args_len) {
             NULL, (BOOL)use_rpc, NULL, server, FALSE, NULL);
     }
 
-    BeaconPrintf(CALLBACK_OUTPUT, "\n=== SharpDPAPI Chrome Logins (BOF) ===\n");
+    BeaconPrintf(CALLBACK_OUTPUT, "\n=== DPAPI Chrome Logins (BOF) ===\n");
 
     triage_chrome_logins(&cache, target, server, (BOOL)unprotect,
                          state_key, sk_len);

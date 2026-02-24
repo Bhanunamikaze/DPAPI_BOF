@@ -63,7 +63,7 @@ void go(char* args, int args_len) {
         }
     }
 
-    BeaconPrintf(CALLBACK_OUTPUT, "\n=== SharpDPAPI Vaults (BOF) ===\n");
+    BeaconPrintf(CALLBACK_OUTPUT, "\n=== DPAPI Vaults (BOF) ===\n");
 
     /* Step 1: Triage masterkeys */
     if (pvk || password || ntlm || use_rpc) {

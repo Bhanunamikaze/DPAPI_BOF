@@ -65,7 +65,7 @@ void go(char* args, int args_len) {
         }
     }
 
-    BeaconPrintf(CALLBACK_OUTPUT, "\n=== SharpDPAPI RDG/RDCMan (BOF) ===\n");
+    BeaconPrintf(CALLBACK_OUTPUT, "\n=== DPAPI RDG/RDCMan (BOF) ===\n");
 
     /* Triage masterkeys first */
     if (pvk || password || ntlm || use_rpc) {

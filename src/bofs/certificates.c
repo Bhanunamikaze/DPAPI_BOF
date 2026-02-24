@@ -65,7 +65,7 @@ void go(char* args, int args_len) {
         }
     }
 
-    BeaconPrintf(CALLBACK_OUTPUT, "\n=== SharpDPAPI Certificates (BOF) ===\n");
+    BeaconPrintf(CALLBACK_OUTPUT, "\n=== DPAPI Certificates (BOF) ===\n");
 
     if (machine) {
         /* Machine certificate triage — needs SYSTEM */

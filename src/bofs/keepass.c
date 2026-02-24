@@ -61,7 +61,7 @@ void go(char* args, int args_len) {
         }
     }
 
-    BeaconPrintf(CALLBACK_OUTPUT, "\n=== SharpDPAPI KeePass (BOF) ===\n");
+    BeaconPrintf(CALLBACK_OUTPUT, "\n=== DPAPI KeePass (BOF) ===\n");
 
     /* Triage masterkeys */
     if (pvk || password || ntlm || use_rpc) {

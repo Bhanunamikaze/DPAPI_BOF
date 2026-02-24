@@ -34,7 +34,7 @@ void go(char* args, int args_len) {
     char* server_str = BeaconDataExtract(&parser, NULL);
     int   nowrap     = BeaconDataInt(&parser);
 
-    BeaconPrintf(CALLBACK_OUTPUT, "\n=== SharpDPAPI BackupKey (BOF) ===\n");
+    BeaconPrintf(CALLBACK_OUTPUT, "\n=== DPAPI BackupKey (BOF) ===\n");
 
     /* Determine target DC */
     wchar_t* wserver = NULL;

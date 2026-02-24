@@ -79,7 +79,7 @@ void go(char* args, int args_len) {
             NULL, (BOOL)use_rpc, NULL, server, FALSE, NULL);
     }
 
-    BeaconPrintf(CALLBACK_OUTPUT, "\n=== SharpDPAPI Chrome State Keys (BOF) ===\n");
+    BeaconPrintf(CALLBACK_OUTPUT, "\n=== DPAPI Chrome State Keys (BOF) ===\n");
 
     triage_chrome_statekeys(&cache, target, server, (BOOL)unprotect);
 

@@ -76,7 +76,7 @@ void go(char* args, int args_len) {
             NULL, NULL, NULL, FALSE, NULL, server, FALSE, NULL);
     }
 
-    BeaconPrintf(CALLBACK_OUTPUT, "\n=== SharpDPAPI Search (BOF) ===\n");
+    BeaconPrintf(CALLBACK_OUTPUT, "\n=== DPAPI Search (BOF) ===\n");
 
     triage_search(&cache, target, server,
         (pattern && strlen(pattern) > 0) ? pattern : NULL);

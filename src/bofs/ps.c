@@ -81,7 +81,7 @@ void go(char* args, int args_len) {
             NULL, (BOOL)use_rpc, NULL, NULL, FALSE, NULL);
     }
 
-    BeaconPrintf(CALLBACK_OUTPUT, "\n=== SharpDPAPI PSCredential (BOF) ===\n");
+    BeaconPrintf(CALLBACK_OUTPUT, "\n=== DPAPI PSCredential (BOF) ===\n");
 
     triage_ps_cred_file(&cache, target, (BOOL)unprotect);
 

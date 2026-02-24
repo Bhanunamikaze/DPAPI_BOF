@@ -18,7 +18,7 @@ void go(char* args, int args_len) {
     (void)args; (void)args_len;
 
     BeaconPrintf(CALLBACK_OUTPUT,
-        "\n=== SharpDPAPI Machine Credentials (BOF) ===\n");
+        "\n=== DPAPI Machine Credentials (BOF) ===\n");
 
     if (!is_high_integrity()) {
         BeaconPrintf(CALLBACK_ERROR,

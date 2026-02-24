@@ -60,7 +60,7 @@ void go(char* args, int args_len) {
         }
     }
 
-    BeaconPrintf(CALLBACK_OUTPUT, "\n=== SharpDPAPI Full User Triage (BOF) ===\n");
+    BeaconPrintf(CALLBACK_OUTPUT, "\n=== DPAPI Full User Triage (BOF) ===\n");
 
     triage_user_full(&cache, pvk, pvk_len,
         (password && strlen(password) > 0) ? password : NULL,
