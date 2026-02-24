@@ -136,6 +136,7 @@ char* get_sid_from_bkfile(const BYTE* bk_bytes, int bk_len);
 /* ---- Credential Parsing ---- */
 BOOL describe_credential(const BYTE* data, int data_len,
                          MASTERKEY_CACHE* cache,
+                         BOOL unprotect,
                          char** output);
 
 BOOL parse_dec_cred_blob(const BYTE* data, int data_len, char** output);

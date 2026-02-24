@@ -83,14 +83,14 @@ void go(char* args, int args_len) {
 #endif
         if (attrs != INVALID_FILE_ATTRIBUTES) {
             if (attrs & FILE_ATTRIBUTE_DIRECTORY) {
-                triage_cred_folder(&cache, target);
+                triage_cred_folder(&cache, target, FALSE);
             } else {
-                triage_cred_file(&cache, target);
+                triage_cred_file(&cache, target, FALSE);
             }
         }
     } else {
         /* Triage all user credential stores */
-        triage_user_creds(&cache, NULL, server);
+        triage_user_creds(&cache, NULL, server, FALSE);
     }
 
     if (cache.count > 0) {

@@ -45,7 +45,7 @@ void go(char* args, int args_len) {
 
     /* Step 2: Triage credentials */
     BeaconPrintf(CALLBACK_OUTPUT, "[*] --- Machine Credentials ---\n");
-    triage_system_creds(&cache);
+    triage_system_creds(&cache, FALSE);
 
     /* Step 3: Triage vaults */
     BeaconPrintf(CALLBACK_OUTPUT, "\n[*] --- Machine Vaults ---\n");

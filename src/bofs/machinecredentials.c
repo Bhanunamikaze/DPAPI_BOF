@@ -44,7 +44,7 @@ void go(char* args, int args_len) {
         cache.count);
 
     /* Step 2: Triage SYSTEM credential files */
-    triage_system_creds(&cache);
+    triage_system_creds(&cache, FALSE);
 
     mk_cache_free(&cache);
 }

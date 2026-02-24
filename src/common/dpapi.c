@@ -303,7 +303,7 @@ BOOL describe_dpapi_blob(const BYTE* raw, int raw_len,
     }
 
     /* CryptUnprotectData path (for /unprotect flag) */
-    if (unprotect && !cache) {
+    if (unprotect) {
         DATA_BLOB dataIn, dataOut;
         dataIn.pbData = (BYTE*)raw;
         dataIn.cbData = raw_len;
@@ -553,6 +553,7 @@ BOOL derive_pre_key(const char* password, const char* sid,
 
 BOOL describe_credential(const BYTE* data, int data_len,
                          MASTERKEY_CACHE* cache,
+                         BOOL unprotect,
                          char** output) {
     /*
      * Credential file structure:
@@ -575,7 +576,7 @@ BOOL describe_credential(const BYTE* data, int data_len,
     if (blob_offset >= data_len) return FALSE;
 
     return describe_dpapi_blob(data + blob_offset, data_len - blob_offset,
-                               cache, FALSE, output);
+                               cache, unprotect, output);
 }
 
 /* ---- Parse decrypted credential blob ---- */

@@ -25,15 +25,19 @@ BOOL triage_system_masterkeys(MASTERKEY_CACHE* cache);
 /* ---- Credential Triage ---- */
 BOOL triage_user_creds(MASTERKEY_CACHE* cache,
                        const wchar_t* target,
-                       const wchar_t* server);
+                       const wchar_t* server,
+                       BOOL unprotect);
 
-BOOL triage_system_creds(MASTERKEY_CACHE* cache);
+BOOL triage_system_creds(MASTERKEY_CACHE* cache,
+                         BOOL unprotect);
 
 BOOL triage_cred_folder(MASTERKEY_CACHE* cache,
-                        const wchar_t* folder);
+                        const wchar_t* folder,
+                        BOOL unprotect);
 
 BOOL triage_cred_file(MASTERKEY_CACHE* cache,
-                      const wchar_t* file_path);
+                      const wchar_t* file_path,
+                      BOOL unprotect);
 
 /* ---- Vault Triage ---- */
 BOOL triage_user_vaults(MASTERKEY_CACHE* cache,
