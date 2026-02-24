@@ -83,7 +83,7 @@ static void enumerate_files(const wchar_t* dir, const wchar_t* pattern,
 
         wchar_t full_path[MAX_PATH * 2];
         swprintf(full_path, L"%s\\%s", dir, ffd.cFileName);
-        callback(full_path, ctx);
+        if (callback) callback(full_path, ctx);
     } while (KERNEL32$FindNextFileW(hFind, &ffd));
     KERNEL32$FindClose(hFind);
 #else
@@ -96,7 +96,7 @@ static void enumerate_files(const wchar_t* dir, const wchar_t* pattern,
 
         wchar_t full_path[MAX_PATH * 2];
         swprintf(full_path, L"%s\\%s", dir, ffd.cFileName);
-        callback(full_path, ctx);
+        if (callback) callback(full_path, ctx);
     } while (FindNextFileW(hFind, &ffd));
     FindClose(hFind);
 #endif
@@ -120,7 +120,7 @@ static void enumerate_dirs(const wchar_t* dir, FILE_CALLBACK callback, void* ctx
 
         wchar_t full_path[MAX_PATH * 2];
         swprintf(full_path, L"%s\\%s", dir, ffd.cFileName);
-        callback(full_path, ctx);
+        if (callback) callback(full_path, ctx);
     } while (KERNEL32$FindNextFileW(hFind, &ffd));
     KERNEL32$FindClose(hFind);
 #else
@@ -133,7 +133,7 @@ static void enumerate_dirs(const wchar_t* dir, FILE_CALLBACK callback, void* ctx
 
         wchar_t full_path[MAX_PATH * 2];
         swprintf(full_path, L"%s\\%s", dir, ffd.cFileName);
-        callback(full_path, ctx);
+        if (callback) callback(full_path, ctx);
     } while (FindNextFileW(hFind, &ffd));
     FindClose(hFind);
 #endif
@@ -352,9 +352,6 @@ BOOL triage_user_masterkeys(MASTERKEY_CACHE* cache,
     for (int i = 0; i < user_count; i++) {
         wchar_t mk_path[MAX_PATH * 2];
         swprintf(mk_path, L"%s\\AppData\\Roaming\\Microsoft\\Protect", users[i]);
-
-        /* Enumerate SID directories under Protect */
-        enumerate_dirs(mk_path, (FILE_CALLBACK)NULL, NULL);
 
         /* For each SID directory, triage masterkey files */
         WIN32_FIND_DATAW ffd;
